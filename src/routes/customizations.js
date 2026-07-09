@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
       generation: generationSlug,
       cached: true,
       cachedAt: cached.cachedAt,
-      items: translateAll(cached.items),
+      items: await translateAll(cached.items),
     });
   }
 
@@ -60,7 +60,7 @@ router.get('/', async (req, res) => {
       generation: generationSlug,
       cached: false,
       totalPages,
-      items: translateAll(titles),
+      items: await translateAll(titles),
     });
   } catch (err) {
     console.error(`Scrape failed for ${makeSlug}/${modelSlug}/${yearSlug}${generationSlug ? `/${generationSlug}` : ''}:`, err);
