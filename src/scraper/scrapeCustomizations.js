@@ -10,7 +10,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function readTitlesOnCurrentPage(page) {
+async function readTitlesOnCurrentPage(page, pageNumber) {
   let titles = await page.locator(selectors.results.titleSelector).allTextContents();
   titles = titles.map((t) => t.trim()).filter(Boolean);
 
@@ -19,6 +19,21 @@ async function readTitlesOnCurrentPage(page) {
     // fall back to any <p> inside the results container.
     titles = await page.locator(selectors.results.fallbackTitleSelector).allTextContents();
     titles = titles.map((t) => t.trim()).filter(Boolean);
+  }
+
+  if (titles.length === 0 && pageNumber === 1) {
+    // Both selectors missed — dump a chunk of the results container so the
+    // real markup can be inspected from the server log without needing
+    // DevTools, and selectors.js can be corrected against it directly.
+    const containerHTML = await page
+      .locator(selectors.results.containerSelector)
+      .first()
+      .evaluate((el) => el.outerHTML.slice(0, 4000))
+      .catch(() => '(could not read container)');
+    console.warn(
+      `  No titles matched "${selectors.results.titleSelector}" or fallback "${selectors.results.fallbackTitleSelector}". ` +
+        `"${selectors.results.containerSelector}" contents (first 4000 chars):\n${containerHTML}`
+    );
   }
 
   return titles;
@@ -122,7 +137,7 @@ async function scrapeCustomizations({ make, model, year }) {
         await sleep(POLITE_DELAY_MS);
       }
 
-      const titles = await readTitlesOnCurrentPage(page);
+      const titles = await readTitlesOnCurrentPage(page, pageNumber);
       const isAllDuplicates = pageNumber > 1 && titles.length > 0 && titles.every((t) => seen.has(t));
       if (isAllDuplicates) {
         console.warn(

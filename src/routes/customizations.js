@@ -18,7 +18,12 @@ router.get('/', async (req, res) => {
   const modelSlug = slugify(model);
   const yearSlug = slugify(year);
 
-  const cached = readCache(makeSlug, modelSlug, yearSlug);
+  // ?force=true bypasses the cache — useful while selectors are still being
+  // tuned against the live site, so a stale/empty cached result doesn't mask
+  // a scraper fix.
+  const force = req.query.force === 'true';
+
+  const cached = force ? null : readCache(makeSlug, modelSlug, yearSlug);
   if (cached) {
     return res.json({
       make: makeSlug,
@@ -37,7 +42,13 @@ router.get('/', async (req, res) => {
       year: yearSlug,
     });
 
-    writeCache(makeSlug, modelSlug, yearSlug, titles);
+    // Don't cache an empty result — with selectors still being verified
+    // against the live DOM, 0 titles is far more likely a selector miss
+    // than a genuinely empty vehicle, and caching it would hide a fix for
+    // a week.
+    if (titles.length > 0) {
+      writeCache(makeSlug, modelSlug, yearSlug, titles);
+    }
 
     res.json({
       make: makeSlug,
