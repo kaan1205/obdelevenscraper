@@ -24,10 +24,11 @@ const DELAY_MS = Number(process.env.DISCOVER_DELAY_MS) || 400;
 // How long to wait for a dependent select (model/year) to repopulate after
 // its parent changes. These sites fetch the new option list from an API, so
 // a fixed sleep isn't reliable — poll until the option values actually change.
-const OPTIONS_WAIT_TIMEOUT_MS = Number(process.env.OPTIONS_WAIT_TIMEOUT_MS) || 20000;
-// Some models legitimately have zero year/config options, so we don't want
-// to burn the full OPTIONS_WAIT_TIMEOUT_MS on every one of those — a shorter,
-// separate timeout for the year select keeps a big crawl from crawling.
+// Some makes/models legitimately have zero models/years (e.g. a make with no
+// supported models yet leaves the model <select> permanently disabled and
+// empty), so these are capped fairly short rather than the old 20s — that
+// combination is treated as "nothing here", not an error.
+const MODEL_WAIT_TIMEOUT_MS = Number(process.env.MODEL_WAIT_TIMEOUT_MS) || 10000;
 const YEAR_WAIT_TIMEOUT_MS = Number(process.env.YEAR_WAIT_TIMEOUT_MS) || 6000;
 const ONLY = (process.env.ONLY || '')
   .split(',')
@@ -84,7 +85,7 @@ async function waitForOptionsToSettle(
   selectLocator,
   previousSnapshot,
   label,
-  { timeoutMs = OPTIONS_WAIT_TIMEOUT_MS, throwOnTimeout = true } = {}
+  { timeoutMs = MODEL_WAIT_TIMEOUT_MS, throwOnTimeout = false } = {}
 ) {
   const start = Date.now();
   let last = null;
@@ -243,12 +244,21 @@ async function main() {
       console.log(`\n== [${makeIndex + 1}/${makes.length}] Make: ${make.label} (${makeSlug}) ==`);
       const makeApplied = await robustSelectOption(makeSelect, make.value);
       if (!makeApplied) console.warn(`  WARNING: make select value did not stick for ${make.label}`);
-      modelSnapshot = await waitForOptionsToSettle(page, modelSelect, modelSnapshot, 'model');
+      modelSnapshot = await waitForOptionsToSettle(page, modelSelect, modelSnapshot, 'model', {
+        timeoutMs: MODEL_WAIT_TIMEOUT_MS,
+        throwOnTimeout: false,
+      });
       await sleep(DELAY_MS);
 
       const models = await readOptions(modelSelect);
       vehicles.models[makeSlug] = models;
       vehicles.years[makeSlug] = vehicles.years[makeSlug] || {};
+
+      if (models.length === 0) {
+        console.log(`  no models for this make — skipping`);
+        save(vehicles);
+        continue;
+      }
       console.log(`  ${models.length} models`);
 
       let yearSnapshot = await snapshotOptions(yearSelect).then((s) => s.values);
