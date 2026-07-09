@@ -51,23 +51,28 @@ async function snapshotOptions(selectLocator) {
  * value, rather than still showing stale/empty options.
  * Returns the new snapshot string so the caller can pass it in next time.
  */
-async function waitForOptionsToSettle(selectLocator, previousSnapshot, label) {
+async function waitForOptionsToSettle(page, selectLocator, previousSnapshot, label) {
   const start = Date.now();
   let last = null;
+  let lastDisabled = null;
 
   while (Date.now() - start < OPTIONS_WAIT_TIMEOUT_MS) {
     // eslint-disable-next-line no-await-in-loop
     const { disabled, values } = await snapshotOptions(selectLocator);
     last = values;
+    lastDisabled = disabled;
     const isReady = !disabled && values.length > 0 && values !== previousSnapshot;
     if (isReady) return values;
     // eslint-disable-next-line no-await-in-loop
     await sleep(200);
   }
 
+  const outerHTML = await selectLocator.evaluate((el) => el.outerHTML).catch(() => '(could not read)');
   throw new Error(
-    `Timed out waiting for ${label} options to update (still "${last}" after ${OPTIONS_WAIT_TIMEOUT_MS}ms). ` +
-      'Increase OPTIONS_WAIT_TIMEOUT_MS or re-check the selector.'
+    `Timed out waiting for ${label} options to update ` +
+      `(still "${last}", disabled=${lastDisabled}, url=${page.url()}, after ${OPTIONS_WAIT_TIMEOUT_MS}ms).\n` +
+      `Increase OPTIONS_WAIT_TIMEOUT_MS or re-check the selector.\n` +
+      `${label} select outerHTML: ${outerHTML}`
   );
 }
 
@@ -147,11 +152,21 @@ async function classifySelects(page) {
     year: yearInfo.label || `[select #${yearInfo.index}]`,
   });
 
-  return {
-    makeSelect: page.locator('select').nth(makeInfo.index),
-    modelSelect: page.locator('select').nth(modelInfo.index),
-    yearSelect: page.locator('select').nth(yearInfo.index),
-  };
+  const makeSelect = page.locator('select').nth(makeInfo.index);
+  const modelSelect = page.locator('select').nth(modelInfo.index);
+  const yearSelect = page.locator('select').nth(yearInfo.index);
+
+  for (const [name, loc] of [
+    ['make', makeSelect],
+    ['model', modelSelect],
+    ['year', yearSelect],
+  ]) {
+    // eslint-disable-next-line no-await-in-loop
+    const attrs = await loc.evaluate((el) => ({ id: el.id, name: el.name, className: el.className }));
+    console.log(`  ${name} select attrs ->`, attrs);
+  }
+
+  return { makeSelect, modelSelect, yearSelect };
 }
 
 async function main() {
@@ -180,7 +195,8 @@ async function main() {
 
       console.log(`\n== Make: ${make.label} (${makeSlug}) ==`);
       await makeSelect.selectOption(make.value);
-      modelSnapshot = await waitForOptionsToSettle(modelSelect, modelSnapshot, 'model');
+      modelSnapshot = await waitForOptionsToSettle(page, modelSelect, modelSnapshot, 'model');
+      console.log(`  url after make select: ${page.url()}`);
       await sleep(DELAY_MS);
 
       const models = await readOptions(modelSelect);
@@ -193,7 +209,8 @@ async function main() {
       for (const model of models) {
         const modelSlug = slugify(model.label);
         await modelSelect.selectOption(model.value);
-        yearSnapshot = await waitForOptionsToSettle(yearSelect, yearSnapshot, 'year');
+        console.log(`  url after model select (${model.label}): ${page.url()}`);
+        yearSnapshot = await waitForOptionsToSettle(page, yearSelect, yearSnapshot, 'year');
         await sleep(DELAY_MS);
 
         const years = await readOptions(yearSelect);
