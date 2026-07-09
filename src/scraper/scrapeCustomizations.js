@@ -203,23 +203,36 @@ async function scrapeCustomizations({ make, model, year }) {
 
     const totalPages = await readTotalPages(page);
     const seen = new Set();
+    const MAX_PAGE_ATTEMPTS = 3;
 
     for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
       let strategy = 'initial-load';
-      if (pageNumber > 1) {
-        strategy = await goToPage(page, pageNumber, url);
-        await sleep(POLITE_DELAY_MS);
+      let titles = [];
+
+      for (let attempt = 1; attempt <= MAX_PAGE_ATTEMPTS; attempt += 1) {
+        if (pageNumber > 1) {
+          strategy = await goToPage(page, pageNumber, url);
+          await sleep(POLITE_DELAY_MS);
+        }
+
+        titles = await readTitlesOnCurrentPage(page, pageNumber);
+        const isAllDuplicates = pageNumber > 1 && titles.length > 0 && titles.every((t) => seen.has(t));
+
+        if (!isAllDuplicates) break;
+
+        if (attempt === MAX_PAGE_ATTEMPTS) {
+          console.warn(
+            `  page ${pageNumber}/${totalPages} for ${make}/${model}/${year} returned only titles ` +
+              `already seen after ${attempt} attempt(s) — pagination did not advance (strategy: ${strategy}).`
+          );
+        } else {
+          console.warn(
+            `  page ${pageNumber}/${totalPages}: only already-seen titles on attempt ${attempt}/${MAX_PAGE_ATTEMPTS}, retrying...`
+          );
+        }
       }
 
-      const titles = await readTitlesOnCurrentPage(page, pageNumber);
-      const isAllDuplicates = pageNumber > 1 && titles.length > 0 && titles.every((t) => seen.has(t));
       console.log(`  page ${pageNumber}/${totalPages} (via ${strategy}): ${titles.length} titles`);
-      if (isAllDuplicates) {
-        console.warn(
-          `  page ${pageNumber}/${totalPages} for ${make}/${model}/${year} returned only titles ` +
-            `already seen — pagination did not actually advance (strategy: ${strategy}).`
-        );
-      }
       titles.forEach((title) => seen.add(title));
     }
 
