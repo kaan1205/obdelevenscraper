@@ -34,6 +34,30 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Selects an option and verifies the DOM value actually stuck. Some React
+ * apps only pick up a select's new value through the native browser value
+ * setter (bypassing React's own descriptor override), which Playwright's
+ * selectOption() should already trigger — but as a belt-and-braces fallback,
+ * re-dispatch input/change through that native setter if the first attempt
+ * didn't take.
+ */
+async function robustSelectOption(selectLocator, value) {
+  await selectLocator.selectOption(value);
+  const applied = await selectLocator.evaluate((el) => el.value);
+  if (applied === value) return true;
+
+  await selectLocator.evaluate((el, val) => {
+    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+    nativeSetter.call(el, val);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }, value);
+
+  const appliedAfterFallback = await selectLocator.evaluate((el) => el.value);
+  return appliedAfterFallback === value;
+}
+
 async function snapshotOptions(selectLocator) {
   return selectLocator.evaluate((el) => ({
     disabled: el.disabled,
@@ -68,11 +92,16 @@ async function waitForOptionsToSettle(page, selectLocator, previousSnapshot, lab
   }
 
   const outerHTML = await selectLocator.evaluate((el) => el.outerHTML).catch(() => '(could not read)');
+  const allSelects = await page
+    .locator('select')
+    .evaluateAll((els) => els.map((el) => ({ id: el.id, name: el.name, value: el.value, optionCount: el.options.length })))
+    .catch(() => '(could not read)');
   throw new Error(
     `Timed out waiting for ${label} options to update ` +
       `(still "${last}", disabled=${lastDisabled}, url=${page.url()}, after ${OPTIONS_WAIT_TIMEOUT_MS}ms).\n` +
       `Increase OPTIONS_WAIT_TIMEOUT_MS or re-check the selector.\n` +
-      `${label} select outerHTML: ${outerHTML}`
+      `${label} select outerHTML: ${outerHTML}\n` +
+      `All <select> elements on page now: ${JSON.stringify(allSelects)}`
   );
 }
 
@@ -194,7 +223,8 @@ async function main() {
       if (ONLY.length && !ONLY.includes(makeSlug)) continue;
 
       console.log(`\n== Make: ${make.label} (${makeSlug}) ==`);
-      await makeSelect.selectOption(make.value);
+      const makeApplied = await robustSelectOption(makeSelect, make.value);
+      if (!makeApplied) console.warn(`  WARNING: make select value did not stick for ${make.label}`);
       modelSnapshot = await waitForOptionsToSettle(page, modelSelect, modelSnapshot, 'model');
       console.log(`  url after make select: ${page.url()}`);
       await sleep(DELAY_MS);
@@ -208,8 +238,11 @@ async function main() {
 
       for (const model of models) {
         const modelSlug = slugify(model.label);
-        await modelSelect.selectOption(model.value);
-        console.log(`  url after model select (${model.label}): ${page.url()}`);
+        const modelApplied = await robustSelectOption(modelSelect, model.value);
+        console.log(
+          `  url after model select (${model.label}): ${page.url()} | value applied: ${modelApplied}`
+        );
+        if (!modelApplied) console.warn(`  WARNING: model select value did not stick for ${model.label}`);
         yearSnapshot = await waitForOptionsToSettle(page, yearSelect, yearSnapshot, 'year');
         await sleep(DELAY_MS);
 
