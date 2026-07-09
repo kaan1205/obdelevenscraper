@@ -25,6 +25,10 @@ const DELAY_MS = Number(process.env.DISCOVER_DELAY_MS) || 400;
 // its parent changes. These sites fetch the new option list from an API, so
 // a fixed sleep isn't reliable — poll until the option values actually change.
 const OPTIONS_WAIT_TIMEOUT_MS = Number(process.env.OPTIONS_WAIT_TIMEOUT_MS) || 20000;
+// Some models legitimately have zero year/config options, so we don't want
+// to burn the full OPTIONS_WAIT_TIMEOUT_MS on every one of those — a shorter,
+// separate timeout for the year select keeps a big crawl from crawling.
+const YEAR_WAIT_TIMEOUT_MS = Number(process.env.YEAR_WAIT_TIMEOUT_MS) || 8000;
 const ONLY = (process.env.ONLY || '')
   .split(',')
   .map((s) => s.trim().toLowerCase())
@@ -75,12 +79,18 @@ async function snapshotOptions(selectLocator) {
  * value, rather than still showing stale/empty options.
  * Returns the new snapshot string so the caller can pass it in next time.
  */
-async function waitForOptionsToSettle(page, selectLocator, previousSnapshot, label) {
+async function waitForOptionsToSettle(
+  page,
+  selectLocator,
+  previousSnapshot,
+  label,
+  { timeoutMs = OPTIONS_WAIT_TIMEOUT_MS, throwOnTimeout = true } = {}
+) {
   const start = Date.now();
   let last = null;
   let lastDisabled = null;
 
-  while (Date.now() - start < OPTIONS_WAIT_TIMEOUT_MS) {
+  while (Date.now() - start < timeoutMs) {
     // eslint-disable-next-line no-await-in-loop
     const { disabled, values } = await snapshotOptions(selectLocator);
     last = values;
@@ -91,6 +101,14 @@ async function waitForOptionsToSettle(page, selectLocator, previousSnapshot, lab
     await sleep(200);
   }
 
+  if (!throwOnTimeout) {
+    // Some combinations legitimately have zero options (e.g. a model with no
+    // published configurations yet) — treat a stable empty/unchanged select
+    // as "nothing here" rather than aborting the whole crawl.
+    console.warn(`  (no ${label} options appeared after ${timeoutMs}ms — treating as empty)`);
+    return previousSnapshot;
+  }
+
   const outerHTML = await selectLocator.evaluate((el) => el.outerHTML).catch(() => '(could not read)');
   const allSelects = await page
     .locator('select')
@@ -98,7 +116,7 @@ async function waitForOptionsToSettle(page, selectLocator, previousSnapshot, lab
     .catch(() => '(could not read)');
   throw new Error(
     `Timed out waiting for ${label} options to update ` +
-      `(still "${last}", disabled=${lastDisabled}, url=${page.url()}, after ${OPTIONS_WAIT_TIMEOUT_MS}ms).\n` +
+      `(still "${last}", disabled=${lastDisabled}, url=${page.url()}, after ${timeoutMs}ms).\n` +
       `Increase OPTIONS_WAIT_TIMEOUT_MS or re-check the selector.\n` +
       `${label} select outerHTML: ${outerHTML}\n` +
       `All <select> elements on page now: ${JSON.stringify(allSelects)}`
@@ -243,7 +261,10 @@ async function main() {
           `  url after model select (${model.label}): ${page.url()} | value applied: ${modelApplied}`
         );
         if (!modelApplied) console.warn(`  WARNING: model select value did not stick for ${model.label}`);
-        yearSnapshot = await waitForOptionsToSettle(page, yearSelect, yearSnapshot, 'year');
+        yearSnapshot = await waitForOptionsToSettle(page, yearSelect, yearSnapshot, 'year', {
+          timeoutMs: YEAR_WAIT_TIMEOUT_MS,
+          throwOnTimeout: false,
+        });
         await sleep(DELAY_MS);
 
         const years = await readOptions(yearSelect);
