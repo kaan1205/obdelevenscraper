@@ -53,23 +53,41 @@ async function readTotalPages(page) {
  * buttons for the first/last few page numbers, so a middle page like 7 has
  * no clickable number to target directly — but a Next arrow reliably steps
  * forward one page regardless of which numbers happen to be visible.
+ *
+ * Confirmed from the live DOM: the Next control is an icon-only
+ * `.chakra-button` (an SVG chevron, no text and no aria-label) using the
+ * exact same generated class as the numbered page buttons — so it can't be
+ * matched by text or class. Instead, find the pagination bar (the shared
+ * parent of the digit buttons) and take the button that comes right after
+ * the last digit/ellipsis button in DOM order.
  */
 async function findNextButton(page) {
-  // Pagination items here are `.chakra-button` elements (sometimes rendered
-  // as <span>, not a native <button> — confirmed from the live DOM), so text/
-  // class-based matching is tried before role/aria-label-based matching.
-  const candidates = [
-    page.locator(selectors.pagination.buttonSelector).filter({ hasText: /^(>|»|›|next)$/i }),
-    page.locator('[aria-label*="next" i]'),
-    page.getByRole('button', { name: /^next$/i }),
-    page.getByRole('button', { name: /next page/i }),
-  ];
+  const handle = await page.evaluateHandle((sel) => {
+    const all = Array.from(document.querySelectorAll(sel));
+    const digitButtons = all.filter((el) => /^\d+$/.test(el.textContent.trim()));
+    if (digitButtons.length === 0) return null;
 
-  for (const candidate of candidates) {
-    // eslint-disable-next-line no-await-in-loop
-    if ((await candidate.count()) > 0) return candidate.first();
+    let container = digitButtons[0].parentElement;
+    while (container && !digitButtons.every((b) => container.contains(b))) {
+      container = container.parentElement;
+    }
+    if (!container) return null;
+
+    const siblings = Array.from(container.querySelectorAll(sel));
+    const lastPagerIndex = siblings.reduce((last, el, i) => {
+      const t = el.textContent.trim();
+      return /^\d+$/.test(t) || t === '...' || t === '…' ? i : last;
+    }, -1);
+
+    return lastPagerIndex >= 0 && lastPagerIndex + 1 < siblings.length ? siblings[lastPagerIndex + 1] : null;
+  }, selectors.pagination.buttonSelector);
+
+  const element = handle.asElement();
+  if (!element) {
+    await handle.dispose();
+    return null;
   }
-  return null;
+  return element;
 }
 
 /** Returns which navigation strategy it used, for diagnostics. */
@@ -116,16 +134,18 @@ async function goToPage(page, pageNumber, baseUrl) {
   // it directly instead of guessing blind.
   const paginationHTML = await page
     .evaluate((sel) => {
-      const buttons = Array.from(document.querySelectorAll(sel)).filter((el) => {
-        const t = el.textContent.trim();
-        return /^\d+$/.test(t) || t === '...' || t === '…' || t.length <= 3;
-      });
-      if (buttons.length === 0) return '(no candidate pagination buttons found on page)';
-      let container = buttons[0];
-      while (container.parentElement && !buttons.every((b) => container.contains(b))) {
+      // Only digit/ellipsis buttons unambiguously identify the pager — a
+      // broader "short text" filter previously swept in unrelated buttons
+      // (e.g. a 3-letter "All" filter tab) and dumped the whole page.
+      const digitButtons = Array.from(document.querySelectorAll(sel)).filter((el) =>
+        /^\d+$/.test(el.textContent.trim())
+      );
+      if (digitButtons.length === 0) return '(no digit pagination buttons found on page)';
+      let container = digitButtons[0].parentElement;
+      while (container && !digitButtons.every((b) => container.contains(b))) {
         container = container.parentElement;
       }
-      return container.outerHTML.slice(0, 6000);
+      return container ? container.outerHTML.slice(0, 3000) : '(no common container found)';
     }, selectors.pagination.buttonSelector)
     .catch(() => '(could not read pagination container)');
   console.warn(`  Could not find a way to reach page ${pageNumber}. Pagination container HTML:\n${paginationHTML}`);
