@@ -8132,5 +8132,963 @@
       ]
     },
     "volvo": {}
+  },
+  "generations": {
+    "bmw": {
+      "1-series": {
+        "qQA5NY8gCd": [
+          {
+            "value": "e81",
+            "label": "E81"
+          },
+          {
+            "value": "e82",
+            "label": "E82"
+          },
+          {
+            "value": "e87",
+            "label": "E87"
+          },
+          {
+            "value": "e88",
+            "label": "E88"
+          },
+          {
+            "value": "e82e",
+            "label": "E82e"
+          }
+        ],
+        "iopAL9aPv4": [
+          {
+            "value": "e87-lci",
+            "label": "E87 LCI"
+          },
+          {
+            "value": "e88-lci",
+            "label": "E88 LCI"
+          },
+          {
+            "value": "e82-lci",
+            "label": "E82 LCI"
+          }
+        ],
+        "51XpDp4gGo": [
+          {
+            "value": "f20",
+            "label": "F20"
+          },
+          {
+            "value": "f21",
+            "label": "F21"
+          }
+        ],
+        "7rq6ZE7Q3M": [
+          {
+            "value": "f20-lci",
+            "label": "F20 LCI"
+          },
+          {
+            "value": "f21-lci",
+            "label": "F21 LCI"
+          }
+        ],
+        "ZYeMElkxKw": [
+          {
+            "value": "f52",
+            "label": "F52"
+          }
+        ],
+        "tZSHm0jR6U": [
+          {
+            "value": "f40",
+            "label": "F40"
+          }
+        ],
+        "j8IvywMj0A": [
+          {
+            "value": "f70",
+            "label": "F70"
+          }
+        ]
+      },
+      "2-active-tourer-gran-tourer": {
+        "WdMlWlFGRF": [
+          {
+            "value": "f45",
+            "label": "F45"
+          },
+          {
+            "value": "f46",
+            "label": "F46"
+          }
+        ],
+        "t914DoSaan": [
+          {
+            "value": "f45-lci",
+            "label": "F45 LCI"
+          },
+          {
+            "value": "f46-lci",
+            "label": "F46 LCI"
+          }
+        ]
+      },
+      "2-gran-coupe": {
+        "yRwUCblsRM": [
+          {
+            "value": "f44",
+            "label": "F44"
+          }
+        ],
+        "Oc8CD5tiTQ": [
+          {
+            "value": "f74",
+            "label": "F74"
+          }
+        ]
+      },
+      "2-series": {
+        "loSzUNDH11": [
+          {
+            "value": "f22",
+            "label": "F22"
+          },
+          {
+            "value": "f23",
+            "label": "F23"
+          },
+          {
+            "value": "f87",
+            "label": "F87"
+          }
+        ],
+        "eW9puMP3eg": [
+          {
+            "value": "f22-lci",
+            "label": "F22 LCI"
+          },
+          {
+            "value": "f23-lci",
+            "label": "F23 LCI"
+          },
+          {
+            "value": "f87-lci",
+            "label": "F87 LCI"
+          }
+        ],
+        "wtSob22S4a": [
+          {
+            "value": "g42",
+            "label": "G42"
+          },
+          {
+            "value": "g87",
+            "label": "G87"
+          }
+        ]
+      },
+      "2-series-active-tourer": {
+        "g9PILDfjlj": [
+          {
+            "value": "u06",
+            "label": "U06"
+          }
+        ]
+      },
+      "3-series": {
+        "MQWmn5COlQ": [
+          {
+            "value": "e90",
+            "label": "E90"
+          },
+          {
+            "value": "e91",
+            "label": "E91"
+          },
+          {
+            "value": "e92",
+            "label": "E92"
+          },
+          {
+            "value": "e93",
+            "label": "E93"
+          }
+        ],
+        "uQ3VZS87Hh": [
+          {
+            "value": "e90-lci",
+            "label": "E90 LCI"
+          },
+          {
+            "value": "e91-lci",
+            "label": "E91 LCI"
+          },
+          {
+            "value": "e92-lci",
+            "label": "E92 LCI"
+          },
+          {
+            "value": "e93-lci",
+            "label": "E93 LCI"
+          }
+        ],
+        "bPng74BqFY": [
+          {
+            "value": "f34",
+            "label": "F34"
+          },
+          {
+            "value": "f30",
+            "label": "F30"
+          },
+          {
+            "value": "f31",
+            "label": "F31"
+          },
+          {
+            "value": "f35",
+            "label": "F35"
+          },
+          {
+            "value": "f80",
+            "label": "F80"
+          }
+        ],
+        "JvYxIBZp8U": [
+          {
+            "value": "f34-lci",
+            "label": "F34 LCI"
+          },
+          {
+            "value": "f30-lci",
+            "label": "F30 LCI"
+          },
+          {
+            "value": "f31-lci",
+            "label": "F31 LCI"
+          },
+          {
+            "value": "f35-lci",
+            "label": "F35 LCI"
+          },
+          {
+            "value": "f80-lci",
+            "label": "F80 LCI"
+          }
+        ],
+        "mjmNgpGGg1": [
+          {
+            "value": "g80",
+            "label": "G80"
+          },
+          {
+            "value": "g81",
+            "label": "G81"
+          }
+        ],
+        "RRwVzeC2mf": [
+          {
+            "value": "g20",
+            "label": "G20"
+          },
+          {
+            "value": "g21",
+            "label": "G21"
+          },
+          {
+            "value": "g28",
+            "label": "G28"
+          }
+        ],
+        "DRg0ElGZdL": [
+          {
+            "value": "g20-lci",
+            "label": "G20 LCI"
+          },
+          {
+            "value": "g21-lci",
+            "label": "G21 LCI"
+          },
+          {
+            "value": "g28-lci",
+            "label": "G28 LCI"
+          }
+        ],
+        "9SBsT1gDRZ": [
+          {
+            "value": "g80-lci",
+            "label": "G80 LCI"
+          },
+          {
+            "value": "g81-lci",
+            "label": "G81 LCI"
+          }
+        ]
+      },
+      "4-series": {
+        "tA3e30vyRb": [
+          {
+            "value": "f36",
+            "label": "F36"
+          },
+          {
+            "value": "f32",
+            "label": "F32"
+          },
+          {
+            "value": "f33",
+            "label": "F33"
+          },
+          {
+            "value": "f82",
+            "label": "F82"
+          },
+          {
+            "value": "f83",
+            "label": "F83"
+          }
+        ],
+        "s8Np0FGplA": [
+          {
+            "value": "f36-lci",
+            "label": "F36 LCI"
+          },
+          {
+            "value": "f32-lci",
+            "label": "F32 LCI"
+          },
+          {
+            "value": "f33-lci",
+            "label": "F33 LCI"
+          },
+          {
+            "value": "f82-lci",
+            "label": "F82 LCI"
+          },
+          {
+            "value": "f83-lci",
+            "label": "F83 LCI"
+          }
+        ],
+        "RY5m8kUywt": [
+          {
+            "value": "g82",
+            "label": "G82"
+          },
+          {
+            "value": "g83",
+            "label": "G83"
+          }
+        ],
+        "kvDpuQRfRe": [
+          {
+            "value": "g22",
+            "label": "G22"
+          },
+          {
+            "value": "g23",
+            "label": "G23"
+          },
+          {
+            "value": "g26",
+            "label": "G26"
+          },
+          {
+            "value": "g26-lci",
+            "label": "G26 LCI"
+          }
+        ],
+        "FWHkHixhC8": [
+          {
+            "value": "g82-lci",
+            "label": "G82 LCI"
+          },
+          {
+            "value": "g83-lci",
+            "label": "G83 LCI"
+          }
+        ],
+        "SIKSWbmo3W": [
+          {
+            "value": "g22-lci",
+            "label": "G22 LCI"
+          },
+          {
+            "value": "g23-lci",
+            "label": "G23 LCI"
+          }
+        ]
+      },
+      "5-series": {
+        "zFSj8Eg23e": [
+          {
+            "value": "f07",
+            "label": "F07"
+          },
+          {
+            "value": "f10",
+            "label": "F10"
+          },
+          {
+            "value": "f11",
+            "label": "F11"
+          },
+          {
+            "value": "f18",
+            "label": "F18"
+          }
+        ],
+        "57K8jsrMPx": [
+          {
+            "value": "e60-lci",
+            "label": "E60 LCI"
+          },
+          {
+            "value": "e61-lci",
+            "label": "E61 LCI"
+          }
+        ],
+        "PATYeWz9FB": [
+          {
+            "value": "f07-lci",
+            "label": "F07 LCI"
+          },
+          {
+            "value": "f10-lci",
+            "label": "F10 LCI"
+          },
+          {
+            "value": "f11-lci",
+            "label": "F11 LCI"
+          },
+          {
+            "value": "f18-lci",
+            "label": "F18 LCI"
+          }
+        ],
+        "wg86c9VVj4": [
+          {
+            "value": "g30",
+            "label": "G30"
+          },
+          {
+            "value": "g31",
+            "label": "G31"
+          },
+          {
+            "value": "g38",
+            "label": "G38"
+          }
+        ],
+        "fBUCYPHHxo": [
+          {
+            "value": "f90",
+            "label": "F90"
+          }
+        ],
+        "UOvBR2miio": [
+          {
+            "value": "g30-lci",
+            "label": "G30 LCI"
+          },
+          {
+            "value": "g31-lci",
+            "label": "G31 LCI"
+          }
+        ],
+        "BOFljV8LvH": [
+          {
+            "value": "f90-lci",
+            "label": "F90 LCI"
+          }
+        ],
+        "GY9ldZ7AbX": [
+          {
+            "value": "g60",
+            "label": "G60"
+          },
+          {
+            "value": "g61",
+            "label": "G61"
+          },
+          {
+            "value": "g68",
+            "label": "G68"
+          }
+        ],
+        "hptwqiqA4j": [
+          {
+            "value": "g90",
+            "label": "G90"
+          },
+          {
+            "value": "g99",
+            "label": "G99"
+          }
+        ]
+      },
+      "6-gran-turismo": {
+        "y2EnEcac4I": [
+          {
+            "value": "g32",
+            "label": "G32"
+          }
+        ],
+        "XdUFzjVIkS": [
+          {
+            "value": "g32-lci",
+            "label": "G32 LCI"
+          }
+        ]
+      },
+      "6-series": {
+        "92pHIZqpJr": [
+          {
+            "value": "e63-lci",
+            "label": "E63 LCI"
+          },
+          {
+            "value": "e64-lci",
+            "label": "E64 LCI"
+          }
+        ],
+        "CJYnIeRtJL": [
+          {
+            "value": "f06",
+            "label": "F06"
+          },
+          {
+            "value": "f12",
+            "label": "F12"
+          },
+          {
+            "value": "f13",
+            "label": "F13"
+          }
+        ],
+        "4CeFSU5F5q": [
+          {
+            "value": "f06-lci",
+            "label": "F06 LCI"
+          },
+          {
+            "value": "f12-lci",
+            "label": "F12 LCI"
+          },
+          {
+            "value": "f13-lci",
+            "label": "F13 LCI"
+          }
+        ]
+      },
+      "7-series": {
+        "AgfyRGfmdJ": [
+          {
+            "value": "f01",
+            "label": "F01"
+          },
+          {
+            "value": "f02",
+            "label": "F02"
+          },
+          {
+            "value": "f03",
+            "label": "F03"
+          },
+          {
+            "value": "f04",
+            "label": "F04"
+          }
+        ],
+        "OhFCT2HbO4": [
+          {
+            "value": "f01-lci",
+            "label": "F01 LCI"
+          },
+          {
+            "value": "f02-lci",
+            "label": "F02 LCI"
+          },
+          {
+            "value": "f03-lci",
+            "label": "F03 LCI"
+          }
+        ],
+        "BVU03XWHIw": [
+          {
+            "value": "g11",
+            "label": "G11"
+          },
+          {
+            "value": "g12",
+            "label": "G12"
+          }
+        ],
+        "JzbvFzIlNB": [
+          {
+            "value": "g11-lci",
+            "label": "G11 LCI"
+          },
+          {
+            "value": "g12-lci",
+            "label": "G12 LCI"
+          }
+        ],
+        "uf9GDgOG6A": [
+          {
+            "value": "g70",
+            "label": "G70"
+          },
+          {
+            "value": "g73",
+            "label": "G73"
+          },
+          {
+            "value": "g71",
+            "label": "G71"
+          }
+        ]
+      },
+      "8-series": {
+        "7oCIKO9cOj": [
+          {
+            "value": "g14",
+            "label": "G14"
+          },
+          {
+            "value": "g15",
+            "label": "G15"
+          },
+          {
+            "value": "g16",
+            "label": "G16"
+          }
+        ],
+        "v96QY31IEo": [
+          {
+            "value": "f91",
+            "label": "F91"
+          },
+          {
+            "value": "f92",
+            "label": "F92"
+          },
+          {
+            "value": "f93",
+            "label": "F93"
+          }
+        ]
+      },
+      "i3": {
+        "WiGRf5Coyf": [
+          {
+            "value": "i01",
+            "label": "I01"
+          }
+        ],
+        "jVCdv57PS3": [
+          {
+            "value": "i01-lci",
+            "label": "I01 LCI"
+          }
+        ]
+      },
+      "i8": {
+        "PWaGNMmKpq": [
+          {
+            "value": "i12",
+            "label": "I12"
+          }
+        ],
+        "7xDnCAa9Lu": [
+          {
+            "value": "i15",
+            "label": "I15"
+          }
+        ],
+        "klxeOznfNv": [
+          {
+            "value": "i12-lci",
+            "label": "I12 LCI"
+          }
+        ]
+      },
+      "ix": {
+        "wBDzQxvOok": [
+          {
+            "value": "i20",
+            "label": "I20"
+          }
+        ],
+        "O0gJsYtpYh": [
+          {
+            "value": "i20-lci",
+            "label": "I20 LCI"
+          }
+        ]
+      },
+      "x1": {
+        "8Qm7BWa4HS": [
+          {
+            "value": "e84",
+            "label": "E84"
+          }
+        ],
+        "d3xKVh7H3p": [
+          {
+            "value": "f48",
+            "label": "F48"
+          },
+          {
+            "value": "f49",
+            "label": "F49"
+          }
+        ],
+        "FOxK3yVn1D": [
+          {
+            "value": "f48-lci",
+            "label": "F48 LCI"
+          },
+          {
+            "value": "f49-lci",
+            "label": "F49 LCI"
+          }
+        ],
+        "tB5YOeRvL8": [
+          {
+            "value": "u11",
+            "label": "U11"
+          },
+          {
+            "value": "u12",
+            "label": "U12"
+          }
+        ]
+      },
+      "x2": {
+        "CcgUy9ARjg": [
+          {
+            "value": "f39",
+            "label": "F39"
+          }
+        ],
+        "hB9ZhdupIU": [
+          {
+            "value": "u10",
+            "label": "U10"
+          }
+        ]
+      },
+      "x3": {
+        "gvD9o45zSK": [
+          {
+            "value": "f25",
+            "label": "F25"
+          }
+        ],
+        "cFA07gta44": [
+          {
+            "value": "g08",
+            "label": "G08"
+          },
+          {
+            "value": "g01",
+            "label": "G01"
+          },
+          {
+            "value": "f97",
+            "label": "F97"
+          }
+        ],
+        "UG7zwsmJzX": [
+          {
+            "value": "g08-lci",
+            "label": "G08 LCI"
+          },
+          {
+            "value": "g01-lci",
+            "label": "G01 LCI"
+          },
+          {
+            "value": "f97-lci",
+            "label": "F97 LCI"
+          }
+        ],
+        "rIpqlIXrQ9": [
+          {
+            "value": "g45",
+            "label": "G45"
+          },
+          {
+            "value": "g48",
+            "label": "G48"
+          }
+        ]
+      },
+      "x4": {
+        "1zpFpE002D": [
+          {
+            "value": "f26",
+            "label": "F26"
+          }
+        ],
+        "4zW8Rc5UBc": [
+          {
+            "value": "g02",
+            "label": "G02"
+          },
+          {
+            "value": "f98",
+            "label": "F98"
+          }
+        ],
+        "uNWyzdpkxO": [
+          {
+            "value": "g02-lci",
+            "label": "G02 LCI"
+          },
+          {
+            "value": "f98-lci",
+            "label": "F98 LCI"
+          }
+        ]
+      },
+      "x5": {
+        "YC8TE6W7sh": [
+          {
+            "value": "e70",
+            "label": "E70"
+          }
+        ],
+        "958pltERVj": [
+          {
+            "value": "e70-lci",
+            "label": "E70 LCI"
+          }
+        ],
+        "Ecl5I6AQwf": [
+          {
+            "value": "f15",
+            "label": "F15"
+          },
+          {
+            "value": "f85",
+            "label": "F85"
+          }
+        ],
+        "aEbmUq1V12": [
+          {
+            "value": "g05",
+            "label": "G05"
+          },
+          {
+            "value": "g18",
+            "label": "G18"
+          },
+          {
+            "value": "f95",
+            "label": "F95"
+          }
+        ],
+        "grUbiRbabQ": [
+          {
+            "value": "g05-lci",
+            "label": "G05 LCI"
+          },
+          {
+            "value": "g18-lci",
+            "label": "G18 LCI"
+          },
+          {
+            "value": "f95-lci",
+            "label": "F95 LCI"
+          }
+        ]
+      },
+      "x6": {
+        "f2nDZADM7m": [
+          {
+            "value": "e71",
+            "label": "E71"
+          },
+          {
+            "value": "e72",
+            "label": "E72"
+          }
+        ],
+        "om3ereuFOT": [
+          {
+            "value": "f16",
+            "label": "F16"
+          },
+          {
+            "value": "f86",
+            "label": "F86"
+          }
+        ],
+        "QouKAIha9M": [
+          {
+            "value": "g06",
+            "label": "G06"
+          },
+          {
+            "value": "f96",
+            "label": "F96"
+          }
+        ],
+        "eU38uDqmU5": [
+          {
+            "value": "g06-lci",
+            "label": "G06 LCI"
+          },
+          {
+            "value": "f96-lci",
+            "label": "F96 LCI"
+          }
+        ]
+      },
+      "x7": {
+        "E7p6kc0oln": [
+          {
+            "value": "g07",
+            "label": "G07"
+          }
+        ],
+        "klKfRWP3ge": [
+          {
+            "value": "g07-lci",
+            "label": "G07 LCI"
+          }
+        ]
+      },
+      "xm": {
+        "9tE2xwJcZC": [
+          {
+            "value": "g09",
+            "label": "G09"
+          }
+        ]
+      },
+      "z4": {
+        "Im2VdmzsiX": [
+          {
+            "value": "e89",
+            "label": "E89"
+          }
+        ],
+        "wHlQOAo43U": [
+          {
+            "value": "g29",
+            "label": "G29"
+          }
+        ],
+        "m4HGsCoi1R": [
+          {
+            "value": "g29-lci",
+            "label": "G29 LCI"
+          }
+        ]
+      }
+    }
   }
 }
