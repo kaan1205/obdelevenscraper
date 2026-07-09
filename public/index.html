@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OBDeleven Özelleştirmeleri</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <h1>OBDeleven Özelleştirmeleri</h1>
+    <p class="subtitle">Aracını seç, mevcut tüm özelleştirmeleri listele.</p>
+
+    <form id="vehicle-form" class="vehicle-form">
+      <label>
+        Marka
+        <select id="make-select" required>
+          <option value="" disabled selected>Marka seçin</option>
+        </select>
+      </label>
+
+      <label>
+        Model
+        <select id="model-select" required disabled>
+          <option value="" disabled selected>Önce marka seçin</option>
+        </select>
+      </label>
+
+      <label>
+        Yıl
+        <select id="year-select" required disabled>
+          <option value="" disabled selected>Önce model seçin</option>
+        </select>
+      </label>
+
+      <button type="submit" id="submit-button" disabled>Devam Et</button>
+    </form>
+
+    <section id="status" class="status" hidden></section>
+
+    <section id="results" class="results" hidden>
+      <h2>Özelleştirmeler</h2>
+      <ul id="results-list" class="results-list"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

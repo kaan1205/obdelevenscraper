@@ -1,0 +1,17 @@
+{
+  "makes": [
+    { "value": "audi", "label": "Audi" },
+    { "value": "volkswagen", "label": "Volkswagen" }
+  ],
+  "models": {
+    "volkswagen": [
+      { "value": "golf", "label": "Golf" },
+      { "value": "tiguan", "label": "Tiguan" }
+    ]
+  },
+  "years": {
+    "volkswagen": {
+      "golf": [{ "value": "BBmjsIcJO8", "label": "2020 - 2024" }]
+    }
+  }
+}

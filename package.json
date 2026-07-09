@@ -1,0 +1,16 @@
+{
+  "name": "obdeleven-customizations-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scrapes OBDeleven customization lists per make/model/year, caches and translates them.",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "discover": "node scripts/discover-vehicles.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "playwright": "^1.47.0"
+  }
+}
