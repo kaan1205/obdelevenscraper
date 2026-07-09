@@ -72,6 +72,7 @@ async function findNextButton(page) {
   return null;
 }
 
+/** Returns which navigation strategy it used, for diagnostics. */
 async function goToPage(page, pageNumber, baseUrl) {
   // The scrape loop always calls this to advance exactly one page at a
   // time (1 -> 2 -> 3 -> ...), so a Next button is always the right move
@@ -80,7 +81,7 @@ async function goToPage(page, pageNumber, baseUrl) {
   if (nextButton) {
     await nextButton.click();
     await page.waitForLoadState('networkidle').catch(() => {});
-    return;
+    return 'next-button';
   }
 
   // Fallback: no Next control found. The exact page-number button may
@@ -88,6 +89,7 @@ async function goToPage(page, pageNumber, baseUrl) {
   let pageButton = page
     .locator(selectors.pagination.buttonSelector)
     .filter({ hasText: new RegExp(`^${pageNumber}$`) });
+  let strategy = 'number-button';
 
   if ((await pageButton.count()) === 0) {
     // ... or it's hidden behind an ellipsis ("1 2 3 … 13") — clicking that
@@ -99,19 +101,23 @@ async function goToPage(page, pageNumber, baseUrl) {
       pageButton = page
         .locator(selectors.pagination.buttonSelector)
         .filter({ hasText: new RegExp(`^${pageNumber}$`) });
+      strategy = 'ellipsis-then-number';
     }
   }
 
   if ((await pageButton.count()) > 0) {
     await pageButton.first().click();
     await page.waitForLoadState('networkidle').catch(() => {});
-    return;
+    return strategy;
   }
 
   // Last resort: try a `?page=` query param in case pagination is URL-driven.
+  // This is known unreliable for client-routed SPAs — it's only here in case
+  // some deployments do read it.
   const url = new URL(baseUrl);
   url.searchParams.set('page', String(pageNumber));
   await page.goto(url.toString(), { waitUntil: 'networkidle' });
+  return 'query-param-fallback';
 }
 
 /**
@@ -132,17 +138,19 @@ async function scrapeCustomizations({ make, model, year }) {
     const seen = new Set();
 
     for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
+      let strategy = 'initial-load';
       if (pageNumber > 1) {
-        await goToPage(page, pageNumber, url);
+        strategy = await goToPage(page, pageNumber, url);
         await sleep(POLITE_DELAY_MS);
       }
 
       const titles = await readTitlesOnCurrentPage(page, pageNumber);
       const isAllDuplicates = pageNumber > 1 && titles.length > 0 && titles.every((t) => seen.has(t));
+      console.log(`  page ${pageNumber}/${totalPages} (via ${strategy}): ${titles.length} titles`);
       if (isAllDuplicates) {
         console.warn(
           `  page ${pageNumber}/${totalPages} for ${make}/${model}/${year} returned only titles ` +
-            'already seen — pagination may not have advanced.'
+            `already seen — pagination did not actually advance (strategy: ${strategy}).`
         );
       }
       titles.forEach((title) => seen.add(title));
