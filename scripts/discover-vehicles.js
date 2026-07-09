@@ -31,6 +31,11 @@ const DELAY_MS = Number(process.env.DISCOVER_DELAY_MS) || 400;
 // combination is treated as "nothing here", not an error.
 const MODEL_WAIT_TIMEOUT_MS = Number(process.env.MODEL_WAIT_TIMEOUT_MS) || 10000;
 const YEAR_WAIT_TIMEOUT_MS = Number(process.env.YEAR_WAIT_TIMEOUT_MS) || 6000;
+// Some makes (confirmed: BMW) render a 4th select — "Generation" / chassis
+// code (e.g. E87 LCI) — once a specific Year is chosen. It reuses the exact
+// same id/name as the Year select (a site quirk), so it can only be found by
+// DOM position (the 4th <select> on the page), never by id.
+const GENERATION_WAIT_TIMEOUT_MS = Number(process.env.GENERATION_WAIT_TIMEOUT_MS) || 6000;
 const ONLY = (process.env.ONLY || '')
   .split(',')
   .map((s) => s.trim().toLowerCase())
@@ -129,7 +134,7 @@ function loadExisting() {
   if (ONLY.length && fs.existsSync(OUTPUT_PATH)) {
     return JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8'));
   }
-  return { makes: [], models: {}, years: {} };
+  return { makes: [], models: {}, years: {}, generations: {} };
 }
 
 function save(vehicles) {
@@ -232,10 +237,13 @@ async function main() {
     const makes = await readOptions(makeSelect);
     console.log(`Found ${makes.length} makes`);
 
+    const generationSelect = page.locator('select').nth(3);
+
     const vehicles = loadExisting();
     vehicles.makes = makes;
     vehicles.models = vehicles.models || {};
     vehicles.years = vehicles.years || {};
+    vehicles.generations = vehicles.generations || {};
 
     let modelSnapshot = await snapshotOptions(modelSelect).then((s) => s.values);
 
@@ -283,8 +291,39 @@ async function main() {
 
         if (years.length === 0) {
           console.log(`  ${progress} ${model.label} (${modelSlug}): no year options — skipping`);
-        } else {
-          console.log(`  ${progress} ${model.label} (${modelSlug}): ${years.length} year ranges`);
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+        console.log(`  ${progress} ${model.label} (${modelSlug}): ${years.length} year ranges`);
+
+        // A 4th select means this model also needs a Generation (e.g. BMW's
+        // chassis code) chosen per Year — probe it for every year option.
+        // It shares Year's id/name (site quirk), so only DOM position (the
+        // 4th <select>) identifies it.
+        const selectCountAfterModel = await page.locator('select').count();
+        if (selectCountAfterModel < 4) continue;
+
+        console.log(`    -> has a Generation field, probing ${years.length} year option(s)...`);
+        vehicles.generations[makeSlug] = vehicles.generations[makeSlug] || {};
+        vehicles.generations[makeSlug][modelSlug] = {};
+
+        let generationSnapshot = await snapshotOptions(generationSelect).then((s) => s.values);
+
+        for (const [yearIndex, year] of years.entries()) {
+          const yearApplied = await robustSelectOption(yearSelect, year.value);
+          if (!yearApplied) console.warn(`    WARNING: year select value did not stick for ${year.label}`);
+
+          generationSnapshot = await waitForOptionsToSettle(page, generationSelect, generationSnapshot, 'generation', {
+            timeoutMs: GENERATION_WAIT_TIMEOUT_MS,
+            throwOnTimeout: false,
+          });
+          await sleep(DELAY_MS);
+
+          const generations = await readOptions(generationSelect);
+          vehicles.generations[makeSlug][modelSlug][year.value] = generations;
+          console.log(
+            `    [${yearIndex + 1}/${years.length}] ${year.label} (${year.value}): ${generations.length} generation(s)`
+          );
         }
       }
 
