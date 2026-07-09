@@ -111,6 +111,25 @@ async function goToPage(page, pageNumber, baseUrl) {
     return strategy;
   }
 
+  // Every click-based strategy failed to find anything to interact with.
+  // Dump the pagination bar's real markup so selectors can be fixed against
+  // it directly instead of guessing blind.
+  const paginationHTML = await page
+    .evaluate((sel) => {
+      const buttons = Array.from(document.querySelectorAll(sel)).filter((el) => {
+        const t = el.textContent.trim();
+        return /^\d+$/.test(t) || t === '...' || t === '…' || t.length <= 3;
+      });
+      if (buttons.length === 0) return '(no candidate pagination buttons found on page)';
+      let container = buttons[0];
+      while (container.parentElement && !buttons.every((b) => container.contains(b))) {
+        container = container.parentElement;
+      }
+      return container.outerHTML.slice(0, 6000);
+    }, selectors.pagination.buttonSelector)
+    .catch(() => '(could not read pagination container)');
+  console.warn(`  Could not find a way to reach page ${pageNumber}. Pagination container HTML:\n${paginationHTML}`);
+
   // Last resort: try a `?page=` query param in case pagination is URL-driven.
   // This is known unreliable for client-routed SPAs — it's only here in case
   // some deployments do read it.
