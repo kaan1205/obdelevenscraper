@@ -28,7 +28,7 @@ const OPTIONS_WAIT_TIMEOUT_MS = Number(process.env.OPTIONS_WAIT_TIMEOUT_MS) || 2
 // Some models legitimately have zero year/config options, so we don't want
 // to burn the full OPTIONS_WAIT_TIMEOUT_MS on every one of those — a shorter,
 // separate timeout for the year select keeps a big crawl from crawling.
-const YEAR_WAIT_TIMEOUT_MS = Number(process.env.YEAR_WAIT_TIMEOUT_MS) || 8000;
+const YEAR_WAIT_TIMEOUT_MS = Number(process.env.YEAR_WAIT_TIMEOUT_MS) || 6000;
 const ONLY = (process.env.ONLY || '')
   .split(',')
   .map((s) => s.trim().toLowerCase())
@@ -236,15 +236,14 @@ async function main() {
 
     let modelSnapshot = await snapshotOptions(modelSelect).then((s) => s.values);
 
-    for (const make of makes) {
+    for (const [makeIndex, make] of makes.entries()) {
       const makeSlug = slugify(make.label);
       if (ONLY.length && !ONLY.includes(makeSlug)) continue;
 
-      console.log(`\n== Make: ${make.label} (${makeSlug}) ==`);
+      console.log(`\n== [${makeIndex + 1}/${makes.length}] Make: ${make.label} (${makeSlug}) ==`);
       const makeApplied = await robustSelectOption(makeSelect, make.value);
       if (!makeApplied) console.warn(`  WARNING: make select value did not stick for ${make.label}`);
       modelSnapshot = await waitForOptionsToSettle(page, modelSelect, modelSnapshot, 'model');
-      console.log(`  url after make select: ${page.url()}`);
       await sleep(DELAY_MS);
 
       const models = await readOptions(modelSelect);
@@ -254,13 +253,13 @@ async function main() {
 
       let yearSnapshot = await snapshotOptions(yearSelect).then((s) => s.values);
 
-      for (const model of models) {
+      for (const [modelIndex, model] of models.entries()) {
         const modelSlug = slugify(model.label);
+        const progress = `[${modelIndex + 1}/${models.length}]`;
+
         const modelApplied = await robustSelectOption(modelSelect, model.value);
-        console.log(
-          `  url after model select (${model.label}): ${page.url()} | value applied: ${modelApplied}`
-        );
-        if (!modelApplied) console.warn(`  WARNING: model select value did not stick for ${model.label}`);
+        if (!modelApplied) console.warn(`  ${progress} WARNING: model select value did not stick for ${model.label}`);
+
         yearSnapshot = await waitForOptionsToSettle(page, yearSelect, yearSnapshot, 'year', {
           timeoutMs: YEAR_WAIT_TIMEOUT_MS,
           throwOnTimeout: false,
@@ -269,7 +268,12 @@ async function main() {
 
         const years = await readOptions(yearSelect);
         vehicles.years[makeSlug][modelSlug] = years;
-        console.log(`  -- ${model.label} (${modelSlug}): ${years.length} year ranges`);
+
+        if (years.length === 0) {
+          console.log(`  ${progress} ${model.label} (${modelSlug}): no year options — skipping`);
+        } else {
+          console.log(`  ${progress} ${model.label} (${modelSlug}): ${years.length} year ranges`);
+        }
       }
 
       // Persist after every make so a crash mid-crawl doesn't lose progress.
