@@ -17,6 +17,7 @@ const { chromium } = require('playwright');
 const selectors = require('../src/scraper/selectors');
 const { slugify } = require('../src/lib/slugify');
 const { launchOptions } = require('../src/lib/launchOptions');
+const { dismissCookieBanner } = require('../src/scraper/cookieConsent');
 
 const OUTPUT_PATH = path.join(__dirname, '..', 'data', 'vehicles.json');
 // Extra pause after a select's options have settled, purely for politeness.
@@ -224,6 +225,7 @@ async function main() {
   try {
     console.log(`Navigating to ${selectors.baseUrl}`);
     await page.goto(selectors.baseUrl, { waitUntil: 'networkidle' });
+    await dismissCookieBanner(page);
 
     const { makeSelect, modelSelect, yearSelect } = await classifySelects(page);
 

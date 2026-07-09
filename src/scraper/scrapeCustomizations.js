@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const selectors = require('./selectors');
 const { launchOptions } = require('../lib/launchOptions');
+const { dismissCookieBanner } = require('./cookieConsent');
 
 // Delay between page loads while paginating, to be polite to the site.
 const POLITE_DELAY_MS = Number(process.env.SCRAPE_DELAY_MS) || 1500;
@@ -63,6 +64,7 @@ async function scrapeCustomizations({ make, model, year }) {
   try {
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle' });
+    await dismissCookieBanner(page);
 
     const totalPages = await readTotalPages(page);
     const seen = new Set();
