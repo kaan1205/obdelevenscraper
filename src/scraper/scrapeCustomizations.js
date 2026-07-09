@@ -5,9 +5,32 @@ const { dismissCookieBanner } = require('./cookieConsent');
 
 // Delay between page loads while paginating, to be polite to the site.
 const POLITE_DELAY_MS = Number(process.env.SCRAPE_DELAY_MS) || 1500;
+// How long to wait for the pagination bar's digit buttons to (re)appear
+// before giving up. The pager can briefly disappear (a loading state) right
+// after clicking Next, so checking once immediately is unreliable.
+const PAGINATION_READY_TIMEOUT_MS = Number(process.env.PAGINATION_READY_TIMEOUT_MS) || 5000;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function countDigitButtons(page) {
+  return page.evaluate(
+    (sel) => Array.from(document.querySelectorAll(sel)).filter((el) => /^\d+$/.test(el.textContent.trim())).length,
+    selectors.pagination.buttonSelector
+  );
+}
+
+/** Waits for at least one digit page-number button to be present in the DOM. */
+async function waitForPaginationReady(page, timeoutMs = PAGINATION_READY_TIMEOUT_MS) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    // eslint-disable-next-line no-await-in-loop
+    if ((await countDigitButtons(page)) > 0) return true;
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(150);
+  }
+  return false;
 }
 
 async function readTitlesOnCurrentPage(page, pageNumber) {
@@ -92,6 +115,11 @@ async function findNextButton(page) {
 
 /** Returns which navigation strategy it used, for diagnostics. */
 async function goToPage(page, pageNumber, baseUrl) {
+  // The pager can briefly vanish (a loading placeholder) right after the
+  // previous page transition — give it a moment to come back before
+  // concluding there's nothing to click.
+  await waitForPaginationReady(page);
+
   // The scrape loop always calls this to advance exactly one page at a
   // time (1 -> 2 -> 3 -> ...), so a Next button is always the right move
   // and works even when the target page number isn't rendered yet.
