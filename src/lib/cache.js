@@ -6,16 +6,16 @@ const TTL_MS = (Number(process.env.CACHE_TTL_HOURS) || 24 * 7) * 60 * 60 * 1000;
 
 fs.mkdirSync(CACHE_DIR, { recursive: true });
 
-function cacheKey(make, model, year) {
-  return `${make}--${model}--${year}`;
+function cacheKey(make, model, year, generation) {
+  return `${make}--${model}--${year}${generation ? `--${generation}` : ''}`;
 }
 
-function cacheFile(make, model, year) {
-  return path.join(CACHE_DIR, `${cacheKey(make, model, year)}.json`);
+function cacheFile(make, model, year, generation) {
+  return path.join(CACHE_DIR, `${cacheKey(make, model, year, generation)}.json`);
 }
 
-function readCache(make, model, year) {
-  const file = cacheFile(make, model, year);
+function readCache(make, model, year, generation) {
+  const file = cacheFile(make, model, year, generation);
   if (!fs.existsSync(file)) return null;
 
   const entry = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -23,9 +23,9 @@ function readCache(make, model, year) {
   return entry;
 }
 
-function writeCache(make, model, year, items) {
-  const entry = { make, model, year, cachedAt: Date.now(), items };
-  fs.writeFileSync(cacheFile(make, model, year), JSON.stringify(entry, null, 2));
+function writeCache(make, model, year, generation, items) {
+  const entry = { make, model, year, generation: generation || null, cachedAt: Date.now(), items };
+  fs.writeFileSync(cacheFile(make, model, year, generation), JSON.stringify(entry, null, 2));
   return entry;
 }
 

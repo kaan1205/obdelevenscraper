@@ -1,21 +1,10 @@
 const state = { vehicles: null };
 
-// Mirrors src/lib/slugify.js so option values line up with the keys
-// discover-vehicles.js wrote into vehicles.json.
-function slugify(label) {
-  return String(label)
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[|/]/g, '-')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-{2,}/g, '-');
-}
-
 const makeSelect = document.getElementById('make-select');
 const modelSelect = document.getElementById('model-select');
 const yearSelect = document.getElementById('year-select');
+const generationField = document.getElementById('generation-field');
+const generationSelect = document.getElementById('generation-select');
 const submitButton = document.getElementById('submit-button');
 const form = document.getElementById('vehicle-form');
 const statusEl = document.getElementById('status');
@@ -33,6 +22,9 @@ function clearStatus() {
   statusEl.textContent = '';
 }
 
+// <option value> is always the raw value discovered from obdeleven.com's own
+// dropdowns (vehicles.json) — the backend resolves those into a real URL, so
+// the frontend never has to compute a slug itself.
 function fillSelect(select, options, placeholder) {
   select.innerHTML = '';
 
@@ -43,9 +35,9 @@ function fillSelect(select, options, placeholder) {
   placeholderOption.selected = true;
   select.appendChild(placeholderOption);
 
-  options.forEach(({ label }) => {
+  options.forEach(({ value, label }) => {
     const opt = document.createElement('option');
-    opt.value = slugify(label);
+    opt.value = value;
     opt.textContent = label;
     select.appendChild(opt);
   });
@@ -64,6 +56,11 @@ function resetSelect(select, placeholder) {
   select.disabled = true;
 }
 
+function hideGenerationField() {
+  generationField.hidden = true;
+  resetSelect(generationSelect, 'Önce yıl seçin');
+}
+
 async function loadVehicles() {
   setStatus('Araç listesi yükleniyor...');
   try {
@@ -80,24 +77,47 @@ async function loadVehicles() {
 }
 
 makeSelect.addEventListener('change', () => {
-  const makeSlug = makeSelect.value;
-  const models = (state.vehicles.models && state.vehicles.models[makeSlug]) || [];
+  const make = makeSelect.value;
+  const models = (state.vehicles.models && state.vehicles.models[make]) || [];
   fillSelect(modelSelect, models, models.length ? 'Model seçin' : 'Model bulunamadı');
   resetSelect(yearSelect, 'Önce model seçin');
+  hideGenerationField();
   submitButton.disabled = true;
 });
 
 modelSelect.addEventListener('change', () => {
-  const makeSlug = makeSelect.value;
-  const modelSlug = modelSelect.value;
-  const years =
-    (state.vehicles.years[makeSlug] && state.vehicles.years[makeSlug][modelSlug]) || [];
+  const make = makeSelect.value;
+  const model = modelSelect.value;
+  const years = (state.vehicles.years[make] && state.vehicles.years[make][model]) || [];
   fillSelect(yearSelect, years, years.length ? 'Yıl seçin' : 'Yıl bulunamadı');
+  hideGenerationField();
   submitButton.disabled = true;
 });
 
 yearSelect.addEventListener('change', () => {
-  submitButton.disabled = !yearSelect.value;
+  const make = makeSelect.value;
+  const model = modelSelect.value;
+  const year = yearSelect.value;
+
+  const generations =
+    (state.vehicles.generations &&
+      state.vehicles.generations[make] &&
+      state.vehicles.generations[make][model] &&
+      state.vehicles.generations[make][model][year]) ||
+    [];
+
+  if (generations.length > 0) {
+    generationField.hidden = false;
+    fillSelect(generationSelect, generations, 'Nesil seçin');
+    submitButton.disabled = true;
+  } else {
+    hideGenerationField();
+    submitButton.disabled = false;
+  }
+});
+
+generationSelect.addEventListener('change', () => {
+  submitButton.disabled = !generationSelect.value;
 });
 
 function renderResults(items) {
@@ -131,16 +151,17 @@ form.addEventListener('submit', async (event) => {
   const make = makeSelect.value;
   const model = modelSelect.value;
   const year = yearSelect.value;
+  const generation = generationField.hidden ? '' : generationSelect.value;
 
   submitButton.disabled = true;
   resultsSection.hidden = true;
   setStatus('Özelleştirmeler getiriliyor, ilk seferde biraz sürebilir...');
 
   try {
-    const url = `/api/customizations?make=${encodeURIComponent(make)}&model=${encodeURIComponent(
-      model
-    )}&year=${encodeURIComponent(year)}`;
-    const res = await fetch(url);
+    const params = new URLSearchParams({ make, model, year });
+    if (generation) params.set('generation', generation);
+
+    const res = await fetch(`/api/customizations?${params.toString()}`);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.error || 'Bilinmeyen hata');

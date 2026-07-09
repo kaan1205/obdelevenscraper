@@ -192,8 +192,8 @@ async function goToPage(page, pageNumber, baseUrl) {
  * walking all pagination pages and de-duplicating titles that repeat across
  * pages.
  */
-async function scrapeCustomizations({ make, model, year }) {
-  const url = `${selectors.baseUrl}/${make}/${model}/${year}`;
+async function scrapeCustomizations({ make, model, year, generation }) {
+  const url = `${selectors.baseUrl}/${make}/${model}/${year}${generation ? `/${generation}` : ''}`;
   const browser = await chromium.launch(launchOptions());
 
   try {
