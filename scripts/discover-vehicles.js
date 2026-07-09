@@ -19,7 +19,12 @@ const { slugify } = require('../src/lib/slugify');
 const { launchOptions } = require('../src/lib/launchOptions');
 
 const OUTPUT_PATH = path.join(__dirname, '..', 'data', 'vehicles.json');
-const DELAY_MS = Number(process.env.DISCOVER_DELAY_MS) || 1200;
+// Extra pause after a select's options have settled, purely for politeness.
+const DELAY_MS = Number(process.env.DISCOVER_DELAY_MS) || 400;
+// How long to wait for a dependent select (model/year) to repopulate after
+// its parent changes. These sites fetch the new option list from an API, so
+// a fixed sleep isn't reliable — poll until the option values actually change.
+const OPTIONS_WAIT_TIMEOUT_MS = Number(process.env.OPTIONS_WAIT_TIMEOUT_MS) || 20000;
 const ONLY = (process.env.ONLY || '')
   .split(',')
   .map((s) => s.trim().toLowerCase())
@@ -27,6 +32,43 @@ const ONLY = (process.env.ONLY || '')
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function snapshotOptions(selectLocator) {
+  return selectLocator.evaluate((el) => ({
+    disabled: el.disabled,
+    values: Array.from(el.options)
+      .map((o) => o.value)
+      .filter(Boolean)
+      .join('|'),
+  }));
+}
+
+/**
+ * Waits until `selectLocator`'s options are non-empty, enabled, and (if a
+ * previous snapshot is given) different from that snapshot — i.e. the
+ * dependent select has actually repopulated for the newly chosen parent
+ * value, rather than still showing stale/empty options.
+ * Returns the new snapshot string so the caller can pass it in next time.
+ */
+async function waitForOptionsToSettle(selectLocator, previousSnapshot, label) {
+  const start = Date.now();
+  let last = null;
+
+  while (Date.now() - start < OPTIONS_WAIT_TIMEOUT_MS) {
+    // eslint-disable-next-line no-await-in-loop
+    const { disabled, values } = await snapshotOptions(selectLocator);
+    last = values;
+    const isReady = !disabled && values.length > 0 && values !== previousSnapshot;
+    if (isReady) return values;
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(200);
+  }
+
+  throw new Error(
+    `Timed out waiting for ${label} options to update (still "${last}" after ${OPTIONS_WAIT_TIMEOUT_MS}ms). ` +
+      'Increase OPTIONS_WAIT_TIMEOUT_MS or re-check the selector.'
+  );
 }
 
 function loadExisting() {
@@ -130,12 +172,15 @@ async function main() {
     vehicles.models = vehicles.models || {};
     vehicles.years = vehicles.years || {};
 
+    let modelSnapshot = await snapshotOptions(modelSelect).then((s) => s.values);
+
     for (const make of makes) {
       const makeSlug = slugify(make.label);
       if (ONLY.length && !ONLY.includes(makeSlug)) continue;
 
       console.log(`\n== Make: ${make.label} (${makeSlug}) ==`);
       await makeSelect.selectOption(make.value);
+      modelSnapshot = await waitForOptionsToSettle(modelSelect, modelSnapshot, 'model');
       await sleep(DELAY_MS);
 
       const models = await readOptions(modelSelect);
@@ -143,16 +188,17 @@ async function main() {
       vehicles.years[makeSlug] = vehicles.years[makeSlug] || {};
       console.log(`  ${models.length} models`);
 
+      let yearSnapshot = await snapshotOptions(yearSelect).then((s) => s.values);
+
       for (const model of models) {
         const modelSlug = slugify(model.label);
         await modelSelect.selectOption(model.value);
+        yearSnapshot = await waitForOptionsToSettle(yearSelect, yearSnapshot, 'year');
         await sleep(DELAY_MS);
 
         const years = await readOptions(yearSelect);
         vehicles.years[makeSlug][modelSlug] = years;
         console.log(`  -- ${model.label} (${modelSlug}): ${years.length} year ranges`);
-
-        await sleep(DELAY_MS);
       }
 
       // Persist after every make so a crash mid-crawl doesn't lose progress.
